@@ -48,8 +48,9 @@ public class PracticeActivity extends AppCompatActivity implements View.OnClickL
                 finish();
                 break;
             case R.id.img_savedlist:
-                intent = new Intent(this, SavedListActivity.class);
-                startActivity(intent);
+                Toast.makeText(this, "Choose the sentence..", Toast.LENGTH_SHORT).show();
+                //intent = new Intent(this, SavedListActivity.class);
+                //startActivity(intent);
                 break;
             case R.id.img_speech:
                 Toast.makeText(this, "Speak now..", Toast.LENGTH_SHORT).show();

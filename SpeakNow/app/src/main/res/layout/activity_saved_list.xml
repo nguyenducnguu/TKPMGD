@@ -16,18 +16,20 @@
 
         <ImageView
             android:id="@+id/img_back"
-            android:layout_width="30dp"
+            android:layout_width="0dp"
+            android:layout_weight="1"
             android:layout_height="match_parent"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:src="@drawable/ic_back" />
 
         <EditText
             android:id="@+id/txt_keyword"
-            android:layout_width="fill_parent"
+            android:layout_width="0dp"
+            android:layout_weight="10"
             android:layout_height="match_parent"
             android:layout_marginLeft="@dimen/activity_horizontal_margin"
             android:background="#00000000"
-            android:hint="Search.."
+            android:hint="Search here..."
             android:inputType="text"
             android:textColor="@color/white"
             android:textColorHint="@color/white" />
@@ -36,166 +38,44 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_below="@+id/ln_top"
+        android:layout_below="@id/ln_top"
         android:orientation="vertical">
 
         <LinearLayout
+            android:id="@+id/ln_viewer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edt_custom"
-            android:orientation="horizontal">
+            android:layout_below="@+id/ln_top">
 
-            <LinearLayout
-                android:id="@+id/ln_demo1"
-                android:layout_width="0dp"
+            <com.google.android.youtube.player.YouTubePlayerView
+                android:id="@+id/youtube_view"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="7"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Hi, I'm coder"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="haɪ, aɪm ˈkoʊdər"
-                    android:textColor="@color/white" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="2">
-
-                <ImageView
-                    android:id="@+id/img_demo2"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_delete" />
-
-                <ImageView
-                    android:id="@+id/img_demo3"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_microphone_small" />
-            </LinearLayout>
+                android:background="#fff" />
         </LinearLayout>
 
         <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edt_custom"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="7"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="what are you doing"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="wʌt ɑr ju ˈduɪŋ"
-                    android:textColor="@color/white" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="2">
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_delete" />
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_microphone_small" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edt_custom"
-            android:orientation="horizontal">
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="7"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="This online converter of English text to IPA phonetic transcription"
-                    android:textColor="@color/white" />
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="ðɪs ˈɔnˌlaɪn kənˈvɜrtər ʌv ˈɪŋglɪʃ tɛkst tu aɪ-pi-eɪ fəˈnɛtɪk ˌtrænˈskrɪpʃən"
-                    android:textColor="@color/white" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_weight="2">
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_delete" />
-
-                <ImageView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:src="@drawable/ic_microphone_small" />
-            </LinearLayout>
-        </LinearLayout>
-
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/rv_saved"
+            android:id="@+id/ln_list"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="5dp"
-            android:layout_marginRight="5dp"
-            android:clipToPadding="false"
-            android:scrollbars="none"
-            android:visibility="gone" />
+            android:layout_below="@id/ln_viewer"
+            android:orientation="vertical">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center"
-            android:text="Empty saved list.."
-            android:textColor="@color/white"
-            android:visibility="gone" />
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/rv_savedItem"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:clipToPadding="false"
+                android:scrollbars="none"
+                android:visibility="gone" />
+
+            <TextView
+                android:id="@+id/txt_status"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="Loading..."
+                android:textColor="@color/white" />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>
