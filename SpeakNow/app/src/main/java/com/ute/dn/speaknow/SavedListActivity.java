@@ -97,11 +97,6 @@ public class SavedListActivity extends YouTubeBaseActivity implements View.OnCli
             @Override
             public void onItemClick(View itemView, int position, SavedItem savedItem) {
                 InitYoutubePlayerView(savedItem);
-                Toast.makeText(SavedListActivity.this, "setOnItemClickListener"
-                        + "\nposition: " + position
-                        + "\nvideoId: " + videoId
-                        + "\nstartAt: " + startAt
-                        + "\nendAt: " + endAt, Toast.LENGTH_SHORT).show();
             }
         });
 
