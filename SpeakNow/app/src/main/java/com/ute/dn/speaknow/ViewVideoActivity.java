@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -27,6 +28,8 @@ import com.google.android.youtube.player.YouTubePlayerView;
 import com.ute.dn.speaknow.Interfaces.OnSavedItemClickListener;
 import com.ute.dn.speaknow.Interfaces.OnItemLongClickListener;
 import com.ute.dn.speaknow.Interfaces.OnTranscriptItemClickListener;
+import com.ute.dn.speaknow.Interfaces.OnTranscriptItemDoubleClickListener;
+import com.ute.dn.speaknow.Interfaces.OnTranscriptItemLongClickListener;
 import com.ute.dn.speaknow.adapters.TranscriptAdapter;
 import com.ute.dn.speaknow.common.DeveloperKey;
 import com.ute.dn.speaknow.common.GetTitleTask;
@@ -35,24 +38,32 @@ import com.ute.dn.speaknow.databases.MyDatabaseHelper;
 import com.ute.dn.speaknow.models.SavedItem;
 import com.ute.dn.speaknow.models.Transcript;
 
+import java.util.List;
+
 public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnClickListener, YouTubePlayer.OnInitializedListener {
 
     EditText txt_transcript, txt_notes;
     TextView txt_startDisplay, txt_endDisplay;
     Button btn_save;
 
-    LinearLayout ln_statusTranscript;
-    LinearLayout ln_createTranscript;
+    LinearLayout ln_createTranscript, ln_statusTranscript;
     RelativeLayout rl_main;
     ImageView img_back, img_savedlist;
     TextView txt_title, txt_statusTranscript;
+
     YouTubePlayerView youTubePlayerView;
     YouTubePlayer mYoutubePlayer = null;
+
     RecyclerView rv_transcripts;
+    List<Transcript> lstData;
     TranscriptAdapter mAdapter;
+
     GetTranscriptTask mGetTranscriptTask;
     GetTitleTask mGetTitleTask;
+
     int currentTime = 0;
+    Handler handler = new Handler();
+    Runnable run;
 
     public static String VIDEO_ID = "";
     public static String VIDEO_URL = "https://www.youtube.com/watch?v=" + VIDEO_ID;
@@ -85,7 +96,21 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
 
         //Initializing YouTube Player View
         InitYoutubePlayerView();
+
+        //Update UI with current time
+        run = new Runnable() {
+            @Override
+            public void run() {
+                if(mAdapter != null && mYoutubePlayer != null){
+                    mAdapter.updateUI(getPositionWithCurrentTime(mYoutubePlayer.getCurrentTimeMillis()));
+                }
+                handler.postDelayed(this, 100);
+            }
+        };
+        handler.postDelayed(run, 100);
     }
+
+
 
     private boolean isDeviceOnline() {
         ConnectivityManager connMgr =
@@ -139,40 +164,57 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
     private void loadTranscript() {
         mGetTranscriptTask = new GetTranscriptTask(rv_transcripts, txt_statusTranscript, ln_createTranscript);
         mGetTranscriptTask.execute(TRANSCRIPT_URL);
-        mAdapter = new TranscriptAdapter(mGetTranscriptTask.lstData);
+        lstData = mGetTranscriptTask.lstData;
         LinearLayoutManager layoutManager = new LinearLayoutManager(getApplicationContext());
         layoutManager.setOrientation(LinearLayoutManager.VERTICAL);
         rv_transcripts.setLayoutManager(layoutManager);
         rv_transcripts.setHasFixedSize(true);
+        mAdapter = new TranscriptAdapter(rv_transcripts, lstData);
         rv_transcripts.setAdapter(mAdapter);
 
         mAdapter.setOnItemClickListener(new OnTranscriptItemClickListener() {
             @Override
             public void onItemClick(View itemView, int position, Transcript transcript) {
-                if (itemView == null) return;
-                TextView txt_startAt = itemView.findViewById(R.id.txt_startAt);
                 if (mYoutubePlayer != null) {
-                    mYoutubePlayer.seekToMillis(Integer.parseInt(String.valueOf(txt_startAt.getText())));
+                    mYoutubePlayer.seekToMillis(transcript.getStrart());
+                    //Toast.makeText(ViewVideoActivity.this, "position: " + position, Toast.LENGTH_SHORT).show();
                 } else {
                     Toast.makeText(ViewVideoActivity.this, "mYoutubePlayer = null", Toast.LENGTH_SHORT).show();
                 }
             }
         });
 
-        mAdapter.setOnItemLongClickListener(new OnItemLongClickListener() {
+        mAdapter.setOnItemDoubleClickListener(new OnTranscriptItemDoubleClickListener() {
             @Override
-            public void onItemLongClick(View itemView, int position) {
-                TextView txt_transcript = itemView.findViewById(R.id.txt_transcript);
-                TextView txt_startAt = itemView.findViewById(R.id.txt_startAt);
-                TextView txt_endAt = itemView.findViewById(R.id.txt_endAt);
-                int startAt = Integer.parseInt(txt_startAt.getText().toString());
-                int endtAt = Integer.parseInt(txt_endAt.getText().toString());
-                SavedItem savedItem = new SavedItem(VIDEO_ID, txt_transcript.getText().toString(),
-                        startAt, endtAt,"");
-                showDialogSave(savedItem);
-                //Toast.makeText(ViewVideoActivity.this, txt_transcript.getText().toString(), Toast.LENGTH_SHORT).show();
+            public void onItemDoubleClick(View itemView, int position, Transcript transcript) {
+                SavedItem savedItem = new SavedItem(VIDEO_ID, transcript.getTranscript(),
+                        transcript.getStrart(), transcript.getStrart() + transcript.getDuration(),"");
+                MyDatabaseHelper db = new MyDatabaseHelper(ViewVideoActivity.this);
+                if (db.addSavedItem(savedItem)) {
+                    Toast.makeText(ViewVideoActivity.this, "Save successfully!\n" + transcript.getTranscript(), Toast.LENGTH_SHORT).show();
+                } else {
+                    Toast.makeText(ViewVideoActivity.this, "Save failed!\n" + transcript.getTranscript(), Toast.LENGTH_SHORT).show();
+                }
             }
         });
+
+        mAdapter.setOnItemLongClickListener(new OnTranscriptItemLongClickListener() {
+            @Override
+            public void onItemLongClick(View itemView, int position, Transcript transcript) {
+                SavedItem savedItem = new SavedItem(VIDEO_ID, transcript.getTranscript(),
+                        transcript.getStrart(), transcript.getStrart() + transcript.getDuration(),"");
+                showDialogSave(savedItem);
+            }
+        });
+    }
+
+    private int getPositionWithCurrentTime(int currentTime){
+        for(int i = 0; i < lstData.size(); i++){
+            if (lstData.get(i).getStrart() > currentTime){
+                return --i;
+            }
+        }
+        return lstData.size() - 1;
     }
 
     private void InitYoutubePlayerView() {
@@ -214,18 +256,18 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
             mYoutubePlayer.setPlayerStyle(YouTubePlayer.PlayerStyle.DEFAULT);
             mYoutubePlayer.setShowFullscreenButton(false);
             mYoutubePlayer.loadVideo(VIDEO_ID, currentTime);
-            Log.d("ViewVideoActivity", "onInitializationSuccess: " + currentTime);
             mYoutubePlayer.play();
         }
     }
 
     private void showDialogSave(final SavedItem savedItem) {
+        if(mYoutubePlayer != null && mYoutubePlayer.isPlaying()) mYoutubePlayer.pause();
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(false);
         dialog.setContentView(R.layout.dialog_save_edit_item);
 
-        TextView txt_transcript = dialog.findViewById(R.id.txt_transcript);
+        final EditText txt_transcript = dialog.findViewById(R.id.txt_transcript);
         final EditText txt_notes = dialog.findViewById(R.id.txt_notes);
 
         txt_transcript.setText(savedItem.getTranscript());
@@ -244,8 +286,15 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
         btn_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (txt_transcript.getText().toString().trim().equals("")) {
+                    Toast.makeText(getApplicationContext(), "Please enter transcript!!!", Toast.LENGTH_SHORT).show();
+                    txt_transcript.setText("");
+                    txt_transcript.requestFocus();
+                    return;
+                }
                 //Toast.makeText(ViewVideoActivity.this, "id: " + savedItem.getTimeSaved(), Toast.LENGTH_SHORT).show();
                 MyDatabaseHelper db = new MyDatabaseHelper(ViewVideoActivity.this);
+                savedItem.setTranscript(txt_transcript.getText().toString().trim());
                 savedItem.setNotes(txt_notes.getText().toString().trim());
                 if (db.addSavedItem(savedItem)) {
                     Toast.makeText(ViewVideoActivity.this, "Save successfully!", Toast.LENGTH_SHORT).show();
@@ -346,7 +395,6 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d("ViewVideoActivity", "onResume: " + currentTime);
         if (mYoutubePlayer == null) {
             InitYoutubePlayerView();
         }
@@ -360,7 +408,6 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
             mYoutubePlayer.release();
         }
         mYoutubePlayer = null;
-        Log.d("ViewVideoActivity", "onPause: " + currentTime);
     }
 
     @Override
@@ -370,6 +417,8 @@ public class ViewVideoActivity extends YouTubeBaseActivity implements View.OnCli
             mYoutubePlayer.release();
         }
         mYoutubePlayer = null;
+        handler.removeCallbacks(run);
+        run = null;
         super.onStop();
     }
 }

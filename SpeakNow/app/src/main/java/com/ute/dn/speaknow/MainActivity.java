@@ -19,8 +19,8 @@ import com.ute.dn.speaknow.common.YouTubeHelper;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener{
 
-    //android:text="https://www.youtube.com/watch?v=8irSFvoyLHQ"
-    //android:text="https://www.youtube.com/watch?v=i1R4R84-EPA"
+    //http://youtu.be/8irSFvoyLHQ"
+    //http://youtu.be/i1R4R84-EPA"
 
     ImageView img_savedlist;
     EditText txt_url;

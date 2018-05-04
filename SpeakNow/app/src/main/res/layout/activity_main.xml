@@ -29,7 +29,7 @@
             android:background="@drawable/edt_custom"
             android:hint="URL youtube or video id.."
             android:inputType="text"
-            android:text="https://www.youtube.com/watch?v=8irSFvoyLHQ"
+            android:text="http://youtu.be/xianU0IrxEk"
             android:textColor="@color/white"
             android:textColorHint="@color/white" />
 

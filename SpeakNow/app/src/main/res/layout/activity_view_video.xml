@@ -61,11 +61,34 @@
         </LinearLayout>
 
         <LinearLayout
+            android:id="@+id/ln_guide"
+            android:layout_below="@id/ln_viewer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="/* double tap on transcript to fast save */"
+                android:textColor="@color/appcolor" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="/* press and hold transcript to customize and save */"
+                android:textColor="@color/appcolor" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/ln_list"
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_below="@id/ln_viewer">
+            android:layout_below="@id/ln_guide"
+            android:layout_marginTop="10dp">
 
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/rv_transcripts"

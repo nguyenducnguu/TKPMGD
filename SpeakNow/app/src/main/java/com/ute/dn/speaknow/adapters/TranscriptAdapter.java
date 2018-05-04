@@ -1,29 +1,51 @@
 package com.ute.dn.speaknow.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
+import android.os.Handler;
+import android.support.v7.widget.GridLayoutManager;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.ute.dn.speaknow.Interfaces.OnSavedItemClickListener;
 import com.ute.dn.speaknow.Interfaces.OnItemLongClickListener;
 import com.ute.dn.speaknow.Interfaces.OnTranscriptItemClickListener;
+import com.ute.dn.speaknow.Interfaces.OnTranscriptItemDoubleClickListener;
+import com.ute.dn.speaknow.Interfaces.OnTranscriptItemLongClickListener;
 import com.ute.dn.speaknow.R;
+import com.ute.dn.speaknow.ViewVideoActivity;
 import com.ute.dn.speaknow.models.Transcript;
-
 import java.util.List;
 
 public class TranscriptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{
     private List<Transcript> lstData;
-    private int currentPosition = 0;
+    private RecyclerView rv;
     private Context context;
     private static OnTranscriptItemClickListener mOnItemClick;
-    private static OnItemLongClickListener mOnItemLongClick;
+    private static OnTranscriptItemDoubleClickListener mOnItemDoubleClick;
+    private static OnTranscriptItemLongClickListener mOnItemLongClick;
+    private int currentPosition = 0;
+    private int oldPosition = 0;
 
-    public TranscriptAdapter(List<Transcript> lstData) {
+    public void updateUI(int position){
+        if(position == -1 || position == currentPosition) return;
+        oldPosition = currentPosition;
+        currentPosition = position;
+        notifyItemChanged(oldPosition);
+        notifyItemChanged(currentPosition);
+        ((LinearLayoutManager) rv.getLayoutManager()).scrollToPositionWithOffset(currentPosition, 100);
+        //rv.scrollToPosition(currentPosition);
+    }
+
+    public TranscriptAdapter(RecyclerView recyclerView, List<Transcript> lstData) {
+        this.rv = recyclerView;
         this.lstData = lstData;
     }
 
@@ -40,7 +62,7 @@ public class TranscriptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
     @Override
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-        final TranscriptViewHolder vh = (TranscriptViewHolder) holder;
+        TranscriptViewHolder vh = (TranscriptViewHolder) holder;
         Transcript transcript = lstData.get(position);
         if(transcript == null) return;
         vh.txt_id.setText(transcript.getId() + "");
@@ -53,12 +75,19 @@ public class TranscriptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         ms = (start - mm*1000*60 - ss*1000)/10;
         String time = (mm > 9 ? mm + "" : "0" + mm) + ":" + (ss > 9 ? ss + "" : "0" + ss) + ":" + (ms > 9 ? ms + "" : "0" + ms);
         vh.txt_startDisplay.setText(time);
-
         vh.txt_endAt.setText((transcript.getStrart() + transcript.getDuration()) + "");
-
-        //SpannableString str = new SpannableString(transcript.getTranscript());
-        //str.setSpan(new BackgroundColorSpan(Color.RED), 0, 11, 0);
         vh.txt_transcript.setText(transcript.getTranscript());
+
+        vh.txt_startDisplay.setTextColor(context.getResources().getColor(R.color.white));
+        vh.txt_transcript.setTextColor(context.getResources().getColor(R.color.white));
+        if(position == currentPosition){
+            vh.txt_startDisplay.setTextColor(context.getResources().getColor(R.color.appcolor));
+            vh.txt_transcript.setTextColor(context.getResources().getColor(R.color.appcolor));
+        }
+        else if (position == oldPosition){
+            vh.txt_startDisplay.setTextColor(context.getResources().getColor(R.color.white));
+            vh.txt_transcript.setTextColor(context.getResources().getColor(R.color.white));
+        }
     }
 
     @Override
@@ -75,13 +104,25 @@ public class TranscriptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
         this.mOnItemClick = listener;
     }
 
-    public void setOnItemLongClickListener(OnItemLongClickListener listener) {
+    public void setOnItemDoubleClickListener(OnTranscriptItemDoubleClickListener listener) {
+        this.mOnItemDoubleClick = listener;
+    }
+
+    public void setOnItemLongClickListener(OnTranscriptItemLongClickListener listener) {
         this.mOnItemLongClick = listener;
+    }
+
+    private int getPositionWithId(int id){
+        for (int i = 0; i < lstData.size(); i++) {
+            if(lstData.get(i).getId() == id) return i;
+        }
+        return -1;
     }
 
     public class TranscriptViewHolder extends RecyclerView.ViewHolder {
         TextView txt_id, txt_startAt, txt_startDisplay, txt_endAt, txt_transcript;
         LinearLayout ln_transcript_item;
+        int count = 0;
 
         public TranscriptViewHolder(final View itemView) {
             super(itemView);
@@ -95,16 +136,34 @@ public class TranscriptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHol
 
             ln_transcript_item.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick(View v) {
-                    if (mOnItemClick != null)
-                        mOnItemClick.onItemClick(itemView, getLayoutPosition(), lstData.get(getLayoutPosition()));
+                public void onClick(final View v) {
+                    count++;
+                    final int position = getPositionWithId(Integer.parseInt(txt_id.getText().toString()));
+                    Handler handler = new Handler();
+                    handler.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            if(count == 1){ //Click
+                                if (mOnItemClick != null)
+                                    mOnItemClick.onItemClick(v, position, lstData.get(position));
+                            }
+                            else if (count == 2){ //Double click
+                                if (mOnItemDoubleClick != null) {
+                                    mOnItemDoubleClick.onItemDoubleClick(v, position, lstData.get(position));
+                                }
+                            }
+                            count = 0;
+                        }
+                    }, 500);
                 }
             });
+
             ln_transcript_item.setOnLongClickListener(new View.OnLongClickListener() {
                 @Override
                 public boolean onLongClick(View view) {
+                    int position = getPositionWithId(Integer.parseInt(txt_id.getText().toString()));
                     if (mOnItemLongClick != null)
-                        mOnItemLongClick.onItemLongClick(itemView, getLayoutPosition());
+                        mOnItemLongClick.onItemLongClick(view, position, lstData.get(position));
                     return false;
                 }
             });

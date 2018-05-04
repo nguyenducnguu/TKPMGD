@@ -1,18 +1,28 @@
 package com.ute.dn.speaknow;
 
+import android.Manifest;
 import android.app.Dialog;
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Handler;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.speech.RecognitionListener;
 import android.speech.RecognizerIntent;
+import android.speech.SpeechRecognizer;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -181,10 +191,6 @@ public class SavedListActivity extends YouTubeBaseActivity implements View.OnCli
             mYoutubePlayer.setShowFullscreenButton(false);
             mYoutubePlayer.loadVideo(videoId, startAt);
             mYoutubePlayer.play();
-            Toast.makeText(SavedListActivity.this, "onInitializationSuccess"
-                    + "\nvideoId: " + videoId
-                    + "\nstartAt: " + startAt
-                    + "\nendAt: " + endAt, Toast.LENGTH_SHORT).show();
 
             handler = new Handler();
             runnable = new Runnable() {
@@ -217,7 +223,7 @@ public class SavedListActivity extends YouTubeBaseActivity implements View.OnCli
         dialog.setCancelable(false);
         dialog.setContentView(R.layout.dialog_save_edit_item);
 
-        TextView txt_transcript = dialog.findViewById(R.id.txt_transcript);
+        final EditText txt_transcript = dialog.findViewById(R.id.txt_transcript);
         final EditText txt_notes = dialog.findViewById(R.id.txt_notes);
 
         txt_transcript.setText(savedItem.getTranscript());
@@ -236,8 +242,15 @@ public class SavedListActivity extends YouTubeBaseActivity implements View.OnCli
         btn_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if (txt_transcript.getText().toString().trim().equals("")) {
+                    Toast.makeText(getApplicationContext(), "Please enter transcript!!!", Toast.LENGTH_SHORT).show();
+                    txt_transcript.setText("");
+                    txt_transcript.requestFocus();
+                    return;
+                }
                 //Toast.makeText(ViewVideoActivity.this, "id: " + savedItem.getTimeSaved(), Toast.LENGTH_SHORT).show();
                 MyDatabaseHelper db = new MyDatabaseHelper(SavedListActivity.this);
+                savedItem.setTranscript(txt_transcript.getText().toString().trim());
                 savedItem.setNotes(txt_notes.getText().toString().trim());
                 if(db.updateSavedItem(savedItem)){
                     Toast.makeText(SavedListActivity.this, "Update successfully!", Toast.LENGTH_SHORT).show();
@@ -262,31 +275,108 @@ public class SavedListActivity extends YouTubeBaseActivity implements View.OnCli
         window.setAttributes(lp);
     }
 
+    private void checkPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            if (!(ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED)) {
+                Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
+                        Uri.parse("package:" + getPackageName()));
+                startActivity(intent);
+                finish();
+            }
+        }
+    }
+
     private void showDialogPractice(final SavedItem savedItem){
-        Toast.makeText(this, "Practice...\n"
-                + "id: " + savedItem.getTimeSaved()
-                + "\nvideoId: " + savedItem.getVideoId()
-                + "\nstartAt: " + savedItem.getStartAt()
-                + "\nendAt: " + savedItem.getEndAt()
-                + "\ntranscript: " + savedItem.getTranscript()
-                + "\nnotes: " + savedItem.getNotes(), Toast.LENGTH_SHORT).show();
+        final SpeechRecognizer mSpeechRecognizer = SpeechRecognizer.createSpeechRecognizer(this);
+        final Intent mSpeechRecognizerIntent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
+        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
+                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
+        mSpeechRecognizerIntent.putExtra(RecognizerIntent.EXTRA_LANGUAGE,
+                Locale.getDefault());
+        checkPermission();
 
         dialogPractice = new Dialog(this);
         dialogPractice.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialogPractice.setCancelable(true);
         dialogPractice.setContentView(R.layout.dialog_practice);
 
-        TextView txt_transcript = dialogPractice.findViewById(R.id.txt_transcript);
+        final TextView txt_transcript = dialogPractice.findViewById(R.id.txt_transcript);
         final TextView txt_data = dialogPractice.findViewById(R.id.txt_data);
-        ImageView img_speech = dialogPractice.findViewById(R.id.img_speech);
+        ImageButton btn_speech = dialogPractice.findViewById(R.id.btn_speech);
 
         txt_transcript.setText(savedItem.getTranscript());
 
-        img_speech.setOnClickListener(new View.OnClickListener() {
+        mSpeechRecognizer.setRecognitionListener(new RecognitionListener() {
             @Override
-            public void onClick(View view) {
-                txt_data.setText("Listening...");
-                promptSpeechInput();
+            public void onResults(Bundle bundle) {
+                //getting all the matches
+                ArrayList<String> matches = bundle
+                        .getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION);
+
+                //displaying the first match
+                if (matches != null)
+                    txt_data.setText(matches.get(0));
+                //Check result here
+                if (removeAllNonWordCharacters(txt_data.getText().toString()).equals(removeAllNonWordCharacters(txt_transcript.getText().toString()))){
+                    txt_data.setBackground(getResources().getDrawable(R.drawable.edt_custom_boder_appcolor));
+                }
+                else {
+                    txt_data.setBackground(getResources().getDrawable(R.drawable.edt_custom_boder_red));
+                }
+            }
+
+            @Override
+            public void onReadyForSpeech(Bundle bundle) {
+
+            }
+            @Override
+            public void onBeginningOfSpeech() {
+
+            }
+            @Override
+            public void onRmsChanged(float v) {
+
+            }
+            @Override
+            public void onBufferReceived(byte[] bytes) {
+
+            }
+            @Override
+            public void onEndOfSpeech() {
+
+            }
+            @Override
+            public void onError(int i) {
+
+            }
+            @Override
+            public void onPartialResults(Bundle bundle) {
+
+            }
+            @Override
+            public void onEvent(int i, Bundle bundle) {
+
+            }
+        });
+
+        btn_speech.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction()) {
+                    case MotionEvent.ACTION_UP:
+                        mSpeechRecognizer.stopListening();
+                        //when the user removed the finger
+                        txt_data.setHint("You will see input here...");
+                        break;
+
+                    case MotionEvent.ACTION_DOWN:
+                        mSpeechRecognizer.startListening(mSpeechRecognizerIntent);
+                        //finger is on the button
+                        txt_data.setText("");
+                        txt_data.setHint("Listening...");
+                        break;
+                }
+                return false;
             }
         });
 
@@ -309,53 +399,17 @@ public class SavedListActivity extends YouTubeBaseActivity implements View.OnCli
         window.setAttributes(lp);
     }
 
-    /**
-     * Showing google speech input dialog
-     * */
-    private void promptSpeechInput() {
-        Intent intent = new Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL,
-                RecognizerIntent.LANGUAGE_MODEL_FREE_FORM);
-        intent.putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault());
-        intent.putExtra(RecognizerIntent.EXTRA_PROMPT,
-                getString(R.string.speech_prompt));
-        try {
-            startActivityForResult(intent, REQ_CODE_SPEECH_INPUT);
-        } catch (ActivityNotFoundException a) {
-            Toast.makeText(getApplicationContext(),
-                    getString(R.string.speech_not_supported),
-                    Toast.LENGTH_SHORT).show();
-        }
-    }
+    private String removeAllNonWordCharacters(String str){
+        String alphabet = "abcdefghijklmnopqrstuvwxyz";
+        StringBuilder sb = new StringBuilder(str.toLowerCase());
 
-    /**
-     * Receiving speech input
-     * */
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-
-        switch (requestCode) {
-            case REQ_CODE_SPEECH_INPUT: {
-                if (resultCode == RESULT_OK && null != data) {
-
-                    ArrayList<String> result = data
-                            .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
-
-                    TextView txt_data = dialogPractice.findViewById(R.id.txt_data);
-                    TextView txt_transcript = dialogPractice.findViewById(R.id.txt_transcript);
-                    txt_data.setText(result.get(0));
-                    if(txt_data.getText().toString().trim().toUpperCase().equals(txt_transcript.getText().toString().trim().toUpperCase())){
-                        txt_data.setBackground(getResources().getDrawable(R.drawable.edt_custom_boder_appcolor));
-                    }
-                    else {
-                        txt_data.setBackground(getResources().getDrawable(R.drawable.edt_custom_boder_red));
-                    }
-                }
-                break;
+        for(int i = 0; i < sb.length(); i++){
+            if(alphabet.indexOf(sb.charAt(i)) == -1){
+                sb.deleteCharAt(i);
+                i--;
             }
-
         }
+        return sb.toString();
     }
 
     private void releaseYoutubePlayer(){
