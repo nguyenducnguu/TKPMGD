@@ -1,9 +1,7 @@
 package com.ute.dn.speaknow.adapters;
 
 import android.content.Context;
-import android.graphics.Color;
 import android.os.Handler;
-import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -12,16 +10,14 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
-import com.ute.dn.speaknow.Interfaces.OnSavedItemClickListener;
-import com.ute.dn.speaknow.Interfaces.OnItemLongClickListener;
 import com.ute.dn.speaknow.Interfaces.OnTranscriptItemClickListener;
 import com.ute.dn.speaknow.Interfaces.OnTranscriptItemDoubleClickListener;
 import com.ute.dn.speaknow.Interfaces.OnTranscriptItemLongClickListener;
 import com.ute.dn.speaknow.R;
-import com.ute.dn.speaknow.ViewVideoActivity;
 import com.ute.dn.speaknow.models.Transcript;
+
+import java.util.ArrayList;
 import java.util.List;
 
 public class TranscriptAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder>{

@@ -34,23 +34,16 @@ import javax.xml.parsers.ParserConfigurationException;
 
 public class GetTranscriptTask extends AsyncTask<String, Integer, List<Transcript>> {
 
-    public List<Transcript> lstData = new ArrayList<>();
-    private RecyclerView rv;
-    private TextView txt_statusTranscript;
-    private LinearLayout ln_createTranscript;
+    OnGetTranscriptListener onGetTranscriptTask;
 
-    public GetTranscriptTask(RecyclerView recyclerView, TextView textView, LinearLayout linearLayout){
-        rv = recyclerView;
-        txt_statusTranscript = textView;
-        ln_createTranscript = linearLayout;
+    public GetTranscriptTask(){
+
     }
 
     @Override
     protected void onPreExecute() {
         super.onPreExecute();
-        rv.setVisibility(View.GONE);
-        ln_createTranscript.setVisibility(View.GONE);
-        txt_statusTranscript.setText("Loading transcript...");
+        if(onGetTranscriptTask != null) onGetTranscriptTask.onPreExecute();
     }
 
     @Override
@@ -83,22 +76,20 @@ public class GetTranscriptTask extends AsyncTask<String, Integer, List<Transcrip
     @Override
     protected void onProgressUpdate(Integer... values) {
         super.onProgressUpdate(values);
-        txt_statusTranscript.setText("Loading transcript... " + values);
     }
 
     @Override
     protected void onPostExecute(List<Transcript> transcripts) {
         super.onPostExecute(transcripts);
-        lstData.addAll(transcripts);
-        if(lstData.size() > 0) {
-            rv.setVisibility(View.VISIBLE);
-            rv.getAdapter().notifyDataSetChanged();
-            txt_statusTranscript.setText("Loading transcript...");
-        }
-        else {
-            rv.setVisibility(View.GONE);
-            ln_createTranscript.setVisibility(View.VISIBLE);
-            txt_statusTranscript.setText("Not found transcript!!!");
-        }
+        if(onGetTranscriptTask != null) onGetTranscriptTask.onResult(transcripts);
+    }
+
+    public void setOnGetTranscriptTask(OnGetTranscriptListener onGetTranscriptTask){
+        this.onGetTranscriptTask = onGetTranscriptTask;
+    }
+
+    public interface OnGetTranscriptListener {
+        void onPreExecute();
+        void onResult(List<Transcript> lst);
     }
 }

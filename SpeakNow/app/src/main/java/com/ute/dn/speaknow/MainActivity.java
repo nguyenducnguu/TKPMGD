@@ -1,89 +1,102 @@
 package com.ute.dn.speaknow;
 
-import android.accounts.AccountManager;
-import android.content.Context;
+import android.app.Dialog;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import com.ute.dn.speaknow.common.Authentication;
-import com.ute.dn.speaknow.common.YouTubeHelper;
+import com.nbsp.materialfilepicker.ui.FilePickerActivity;
+import com.ute.dn.speaknow.adapters.SwipeAdapter;
+import com.ute.dn.speaknow.common.Const;
+import com.ute.dn.speaknow.fragments.MainOfflineFragment;
+import com.ute.dn.speaknow.fragments.MainOnlineFragment;
 
-public class MainActivity extends AppCompatActivity implements View.OnClickListener{
+import java.util.ArrayList;
+import java.util.List;
 
-    //http://youtu.be/8irSFvoyLHQ"
-    //http://youtu.be/i1R4R84-EPA"
+public class MainActivity extends AppCompatActivity {
 
-    ImageView img_savedlist;
-    EditText txt_url;
-    Button btn_ok;
+    ImageView img_savedlist, img_info;
+    ViewPager mViewPager;
+    SwipeAdapter mSwipeAdapter;
+    List<Fragment> lstFragment = new ArrayList<>();
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        addView();
-        addEvent();
-        //TestGetId();
-    }
+        lstFragment.add(new MainOnlineFragment());
+        lstFragment.add(new MainOfflineFragment());
 
+        mViewPager = findViewById(R.id.view_pager);
+        mViewPager.setOffscreenPageLimit(1);
+        mSwipeAdapter = new SwipeAdapter(getSupportFragmentManager(), lstFragment);
+        mViewPager.setAdapter(mSwipeAdapter);
+        mViewPager.setCurrentItem(0);
 
-    private void TestGetId(){
-        Log.d("VIDEOID", "1: '" + YouTubeHelper.getVideoId("youtube.com/v/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "2: '" + YouTubeHelper.getVideoId("youtube.com/vi/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "3: '" + YouTubeHelper.getVideoId("youtube.com/?v=8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "4: '" + YouTubeHelper.getVideoId("youtube.com/?vi=8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "5: '" + YouTubeHelper.getVideoId("youtube.com/watch?v=8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "6: '" + YouTubeHelper.getVideoId("youtube.com/watch?vi=8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "7: '" + YouTubeHelper.getVideoId("youtu.be/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "8: '" + YouTubeHelper.getVideoId("youtube.com/embed/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "9: '" + YouTubeHelper.getVideoId("youtube.com/embed/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "10: '" + YouTubeHelper.getVideoId("www.youtube.com/v/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "11: '" + YouTubeHelper.getVideoId("http://www.youtube.com/v/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "12: '" + YouTubeHelper.getVideoId("https://www.youtube.com/v/8d_a1j1MPe0") + "'");
-        Log.d("VIDEOID", "13: '" + YouTubeHelper.getVideoId("youtube.com/watch?v=8d_a1j1MPe0&wtv=wtv") + "'");
-        Log.d("VIDEOID", "14: '" + YouTubeHelper.getVideoId("http://www.youtube.com/watch?dev=inprogress&v=8d_a1j1MPe0&feature=related") + "'");
-        Log.d("VIDEOID", "15: '" + YouTubeHelper.getVideoId("https://m.youtube.com/watch?v=8d_a1j1MPe0") + "'");
-    }
-
-    private void addView(){
         img_savedlist = findViewById(R.id.img_savedlist);
-        txt_url = findViewById(R.id.txt_url);
-        btn_ok = findViewById(R.id.btn_ok);
+        img_savedlist.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SavedListActivity.class);
+                startActivity(intent);
+            }
+        });
+
+        img_info = findViewById(R.id.img_info);
+        img_info.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                showDialogInfo();
+            }
+        });
     }
 
-    private void addEvent(){
-        img_savedlist.setOnClickListener(this);
-        btn_ok.setOnClickListener(this);
+    private void showDialogInfo(){
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setCancelable(true);
+        dialog.setContentView(R.layout.dialog_info);
+
+        Button btn_ok = dialog.findViewById(R.id.btn_ok);
+        btn_ok.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
+
+        //Grab the window of the dialog, and change the width
+        WindowManager.LayoutParams lp = new WindowManager.LayoutParams();
+        Window window = dialog.getWindow();
+        lp.copyFrom(window.getAttributes());
+        //This makes the dialog take up the full width
+        lp.width = WindowManager.LayoutParams.MATCH_PARENT;
+        lp.height = WindowManager.LayoutParams.WRAP_CONTENT;
+        window.setAttributes(lp);
     }
 
     @Override
-    public void onClick(View view) {
-        Intent intent;
-        switch (view.getId()){
-            case R.id.img_savedlist:
-                intent = new Intent(this, SavedListActivity.class);
-                startActivity(intent);
-                break;
-            case R.id.btn_ok:
-                String videoId = YouTubeHelper.getVideoId(String.valueOf(txt_url.getText()));
-                if(videoId.isEmpty() || videoId.trim().length() == 0){
-                    Toast.makeText(this, "Not found video!!!", Toast.LENGTH_SHORT).show();
-                }
-                else {
-                    intent = new Intent(this, ViewVideoActivity.class);
-                    intent.putExtra("videoId", videoId.trim());
-                    startActivity(intent);
-                }
-                break;
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if(requestCode == Const.PICKFILE_VIDEO_REQUEST_CODE
+                || requestCode == Const.PICKFILE_TRANSCRIPT_REQUEST_CODE) {
+            lstFragment.get(1).onActivityResult(requestCode, resultCode, data);
+        }
+        else if(requestCode == Const.MAIN_ONLINE_PICKFILE_TRANSCRIPT_REQUEST_CODE){
+            lstFragment.get(0).onActivityResult(requestCode, resultCode, data);
         }
     }
 }

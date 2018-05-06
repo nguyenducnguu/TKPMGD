@@ -7,39 +7,30 @@
     android:background="@drawable/background"
     tools:context="com.ute.dn.speaknow.MainActivity">
 
-    <ImageView
-        android:id="@+id/img_savedlist"
-        android:layout_width="30dp"
-        android:layout_height="?attr/actionBarSize"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="5dp"
-        android:src="@drawable/ic_savedlist" />
-
     <LinearLayout
+        android:id="@+id/ln_top"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center"
-        android:orientation="vertical">
+        android:layout_height="?attr/actionBarSize"
+        android:gravity="right">
 
-        <EditText
-            android:id="@+id/txt_url"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_margin="5dp"
-            android:background="@drawable/edt_custom"
-            android:hint="URL youtube or video id.."
-            android:inputType="text"
-            android:text="http://youtu.be/xianU0IrxEk"
-            android:textColor="@color/white"
-            android:textColorHint="@color/white" />
+        <ImageView
+            android:id="@+id/img_savedlist"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="5dp"
+            android:src="@drawable/ic_savedlist" />
 
-        <Button
-            android:id="@+id/btn_ok"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/btn_custom"
-            android:text="Ok"
-            android:textColor="@color/white" />
+        <ImageView
+            android:id="@+id/img_info"
+            android:layout_width="30dp"
+            android:layout_height="match_parent"
+            android:layout_marginRight="5dp"
+            android:src="@drawable/ic_info" />
     </LinearLayout>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/view_pager"
+        android:layout_below="@id/ln_top"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
 </RelativeLayout>

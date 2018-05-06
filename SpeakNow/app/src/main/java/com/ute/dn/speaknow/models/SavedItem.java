@@ -6,6 +6,9 @@ import java.io.Serializable;
 import java.util.Comparator;
 
 public class SavedItem implements Serializable, Comparable<SavedItem> {
+    public static final String ONLINE = "online";
+    public static final String OFFLINE = "offline";
+    private String type;
     private String videoId;
     private String transcript;
     private int startAt;
@@ -17,7 +20,8 @@ public class SavedItem implements Serializable, Comparable<SavedItem> {
 
     }
 
-    public SavedItem(long timeSaved, String videoId, String transcript, int startAt, int endAt, String notes) {
+    public SavedItem(long timeSaved, String type, String videoId, String transcript, int startAt, int endAt, String notes) {
+        this.type = type;
         this.videoId = videoId;
         this.transcript = transcript;
         this.startAt = startAt;
@@ -26,13 +30,22 @@ public class SavedItem implements Serializable, Comparable<SavedItem> {
         this.timeSaved = timeSaved;
     }
 
-    public SavedItem(String videoId, String transcript, int startAt, int endAt, String notes) {
+    public SavedItem(String type, String videoId, String transcript, int startAt, int endAt, String notes) {
+        this.type = type;
         this.videoId = videoId;
         this.transcript = transcript;
         this.startAt = startAt;
         this.endAt = endAt;
         this.notes = notes;
         this.timeSaved = System.currentTimeMillis();
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 
     public String getVideoId() {
