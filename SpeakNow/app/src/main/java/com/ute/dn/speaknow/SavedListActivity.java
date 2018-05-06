@@ -112,7 +112,6 @@ public class SavedListActivity extends AppCompatActivity implements View.OnClick
         mAdapter.setOnItemClickListener(new OnSavedItemClickListener() {
             @Override
             public void onItemClick(View itemView, int position, SavedItem savedItem) {
-<<<<<<< HEAD
                 if(savedItem.getType().equals(SavedItem.ONLINE)){
                     InitYoutubePlayerView(savedItem);
                 }
@@ -120,9 +119,6 @@ public class SavedListActivity extends AppCompatActivity implements View.OnClick
                     InitVideoView(savedItem);
                     //Toast.makeText(SavedListActivity.this, "Type: ofline", Toast.LENGTH_SHORT).show();
                 }
-=======
-                InitYoutubePlayerView(savedItem);
->>>>>>> d4e01f72693abc6ec5e003a0436ec130d14b4cd7
             }
         });
 
